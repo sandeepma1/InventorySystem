@@ -1,0 +1,11 @@
+id,type,name,health,power,defence,vitality,description,stackable,rarity,slug
+0,item,Grass,-1,0,0,0,Descriptions,true,1,grass
+1,item,Flower,-1,0,0,0,Descriptions,true,1,flower
+2,item,Wood,-1,0,0,0,Descriptions,true,1,wood
+3,item,Stick,-1,0,0,0,Descriptions,true,1,stick
+4,item,Stone,-1,0,0,0,Descriptions,true,1,stone
+5,item,Coal,-1,0,0,0,Descriptions,true,1,coal
+6,item,Iron,-1,0,0,0,Descriptions,true,1,iron
+7,weapon,Wooden Axe,100,10,0,0,Wooden Axe,false,1,woodenaxe
+8,weapon,Wooden Pickaxe,100,10,0,0,Wooden Axe,false,1,woodenpickaxe
+9,weapon,Wooden Sword,100,10,0,0,Wooden Axe,false,1,woodensword
