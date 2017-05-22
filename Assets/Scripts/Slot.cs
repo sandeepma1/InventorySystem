@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class Slot : MonoBehaviour,IDropHandler, IPointerDownHandler
+public class Slot : MonoBehaviour,IDropHandler, IPointerClickHandler
 {
 	public int id;
 
@@ -26,18 +26,18 @@ public class Slot : MonoBehaviour,IDropHandler, IPointerDownHandler
 				item.transform.SetParent (Inventory.m_instance.slots [droppedItem.slot].transform);
 				item.transform.position = Inventory.m_instance.slots [droppedItem.slot].transform.position;
 
+				Inventory.m_instance.items [droppedItem.slot] = item.GetComponent <ItemData> ().item;
+				Inventory.m_instance.items [id] = droppedItem.item;
+
 				droppedItem.slot = id;
 				droppedItem.transform.SetParent (this.transform);
 				droppedItem.transform.position = this.transform.position;
-
-				Inventory.m_instance.items [droppedItem.slot] = item.GetComponent <ItemData> ().item;
-				Inventory.m_instance.items [id] = droppedItem.item;
 			}
 		}
 		SelectSlot ();
 	}
 
-	public void OnPointerDown (PointerEventData eventData)
+	public void OnPointerClick (PointerEventData eventData)
 	{		
 		SelectSlot ();
 	}
@@ -45,7 +45,9 @@ public class Slot : MonoBehaviour,IDropHandler, IPointerDownHandler
 	public void SelectSlot ()
 	{
 		Inventory.m_instance.slotSelectedImage.transform.parent = this.transform;
-		Inventory.m_instance.slotSelectedImage.GetComponent <RectTransform> ().SetAsFirstSibling ();
+		//	Inventory.m_instance.slotSelectedImage.GetComponent <RectTransform> ().SetAsFirstSibling ();
 		Inventory.m_instance.slotSelectedImage.GetComponent <RectTransform> ().anchoredPosition = Vector3.zero;
+		//Inventory.m_instance.PrintItems ();
+//		print (id + " " + transform.GetChild (0).GetComponent <ItemData> ().item.ID + " " + transform.GetChild (0).GetComponent <ItemData> ().item.Name);
 	}
 }

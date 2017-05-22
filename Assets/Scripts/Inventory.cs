@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using System.Linq;
 
 public class Inventory : MonoBehaviour
 {
@@ -31,46 +32,106 @@ public class Inventory : MonoBehaviour
 			slots [i].GetComponent <Slot> ().id = i;
 			slots [i].GetComponent <RectTransform> ().localScale = Vector3.one;
 		}
-		AddItem (0, 1);
-		AddItem (1, 2);
-		AddItem (3, 3);
+		AddItem (3);
+		AddItem (2);
+		AddItem (1);
+		AddItem (1);
+		AddItem (1);
+		AddItem (1);
+		AddItem (7);
 	}
 
-	public void AddItem (int id, int amount)
-	{		
+	public void AddItem (int id)
+	{
+		List<int> occurance = new List<int> ();
+
 		MyItem itemsToAdd = ItemDatabase.m_instance.FetchItemByID (id);	
 
-		if (itemsToAdd.Stackable && CheckItemInInventory (itemsToAdd)) {			
-			for (int i = 0; i < items.Count; i++) {
+		if (itemsToAdd.Stackable) {
+			for (int i = 0; i < items.Count; i++) {								
 				if (items [i].ID == id) {
-					ItemData data = slots [i].transform.GetChild (0).GetComponent <ItemData> ();
-					print (data.amount);
-					if (data.amount < 99) {
-						data.amount += amount;
+					print (i);
+					occurance.Add (i);					
+				}
+			}
+			print ("occurance.Count " + occurance.Count);
+			if (occurance.Count > 0) {
+				for (int i = 0; i < occurance.Count; i++) {					
+					ItemData data = slots [occurance [i]].transform.GetChild (0).GetComponent <ItemData> ();
+					if (data.amount > 9) {
+						if (i == occurance.Count - 1) {
+							AddNewItemInUI (itemsToAdd);
+						} else {
+							continue;		
+						}								
+					} else {
+						data.amount++;
 						data.transform.GetChild (0).GetComponent <Text> ().text = data.amount.ToString ();
 						break;
+					}	
+				}
+			} else {
+				AddNewItemInUI (itemsToAdd);
+			}			
+		} else {
+			AddNewItemInUI (itemsToAdd);
+		}
+		//PrintItems ();
+	}
+
+	public void RemoveItem (int id)
+	{
+		id = inputFeildID;
+		MyItem itemsToRemove = ItemDatabase.m_instance.FetchItemByID (id);
+
+		if (itemsToRemove.Stackable) {
+			for (int i = 0; i < items.Count; i++) {								
+				if (items [i].ID == id) {
+					ItemData data = slots [i].transform.GetChild (0).GetComponent <ItemData> ();
+					if (data.amount > 1) {
+						data.amount--;	
+						data.transform.GetChild (0).GetComponent <Text> ().text = data.amount.ToString ();
 					} else {
-						AddNewitem (itemsToAdd, amount);
-						break;
-					}						
+						DestroyItem (i);
+					}
+					print ("asd");
+					break;			
+						
 				}
 			}
 		} else {
-			AddNewitem (itemsToAdd, amount);
+			for (int i = 0; i < items.Count; i++) {								
+				if (items [i].ID == id) {
+					DestroyItem (i);
+					break;
+				}
+			}
 		}
 	}
 
-	void AddNewitem (MyItem itemsToAdd, int amount)
+	void Update ()
+	{
+		if (Input.GetKeyDown (KeyCode.Space)) {
+			for (int i = 0; i < items.Count; i++) {			
+				print (i + " " + items [i].ID + " " + items [i].Name);// items
+				if (slots [i].transform.childCount > 0 && slots [i].transform.GetChild (0).CompareTag ("Item")) {
+					print (i + " " + slots [i].transform.GetChild (0).GetComponent <ItemData> ().item.ID + " " + slots [i].transform.GetChild (0).GetComponent <ItemData> ().item.Name);
+				}
+
+			}
+		}
+	}
+
+	void AddNewItemInUI (MyItem itemsToAdd)
 	{
 		for (int i = 0; i < items.Count; i++) {
 			if (items [i].ID == -1) {
 				items [i] = itemsToAdd;
 				GameObject itemsGO = Instantiate (inventoryItem, slots [i].transform);
+				itemsGO.transform.SetAsFirstSibling ();
 				itemsGO.GetComponent <RectTransform> ().localScale = Vector3.one;
 				itemsGO.GetComponent <ItemData> ().slot = i;
-				itemsGO.GetComponent <ItemData> ().type = itemsToAdd.Type;
-				itemsGO.GetComponent <ItemData> ().amount += amount;
-				itemsGO.GetComponent <ItemData> ().transform.GetChild (0).GetComponent <Text> ().text += amount.ToString ();
+				itemsGO.GetComponent <ItemData> ().type = itemsToAdd.Type;			
 				itemsGO.GetComponent <ItemData> ().item = itemsToAdd;
 				itemsGO.GetComponent <Image> ().sprite = itemsToAdd.Sprite;
 				itemsGO.GetComponent <RectTransform> ().anchoredPosition = Vector3.one;
@@ -91,40 +152,10 @@ public class Inventory : MonoBehaviour
 
 	public void AddItemButton ()
 	{
-		AddItem (inputFeildID, inputFeildAmount);
+		AddItem (inputFeildID);
 	}
 
-	public void RemoveItem (int id)
-	{
-		id = inputFeildID;
-		MyItem itemsToRemove = ItemDatabase.m_instance.FetchItemByID (id);
-		if (CheckItemInInventory (itemsToRemove)) {
-			if (itemsToRemove.Stackable) {
-				for (int i = 0; i < items.Count; i++) {
-					if (items [i].ID == id) {					
-						ItemData data = slots [i].transform.GetChild (0).GetComponent <ItemData> ();
-						if (data.amount > 1) {
-							data.amount--;	
-						} else {
-							DestroyItem (i);
-						}
-						data.transform.GetChild (0).GetComponent <Text> ().text = data.amount.ToString ();
-						break;				
-					}
-				}			
-			} else {
-				for (int i = 0; i < items.Count; i++) {
-					print (items [i].Name);
-					if (items [i].ID == inputFeildID) {					
-						DestroyItem (i);
-						break;
-					} else {
-						print ("nothing to remove");
-					}
-				}
-			}
-		}
-	}
+
 
 	void DestroyItem (int id)
 	{
