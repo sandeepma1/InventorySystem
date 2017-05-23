@@ -18,6 +18,7 @@ public class Inventory : MonoBehaviour
 	public MyItem selectedItem = null;
 
 	int inputFeildID = -1, inputFeildAmount = -1;
+	InventoryItems[] myInventory;
 
 	void Awake ()
 	{
@@ -32,6 +33,9 @@ public class Inventory : MonoBehaviour
 			slots [i].GetComponent <Slot> ().id = i;
 			slots [i].GetComponent <RectTransform> ().localScale = Vector3.one;
 		}
+
+		myInventory = new InventoryItems[slots.Count];
+
 		AddItem (3);
 		AddItem (2);
 		AddItem (1);
@@ -39,22 +43,19 @@ public class Inventory : MonoBehaviour
 		AddItem (1);
 		AddItem (1);
 		AddItem (7);
+
 	}
 
 	public void AddItem (int id)
 	{
 		List<int> occurance = new List<int> ();
-
 		MyItem itemsToAdd = ItemDatabase.m_instance.FetchItemByID (id);	
-
 		if (itemsToAdd.Stackable) {
 			for (int i = 0; i < items.Count; i++) {								
 				if (items [i].ID == id) {
-					print (i);
 					occurance.Add (i);					
 				}
 			}
-			print ("occurance.Count " + occurance.Count);
 			if (occurance.Count > 0) {
 				for (int i = 0; i < occurance.Count; i++) {					
 					ItemData data = slots [occurance [i]].transform.GetChild (0).GetComponent <ItemData> ();
@@ -76,7 +77,7 @@ public class Inventory : MonoBehaviour
 		} else {
 			AddNewItemInUI (itemsToAdd);
 		}
-		//PrintItems ();
+		SaveInventoryItems ();
 	}
 
 	public void RemoveItem (int id)
@@ -94,7 +95,6 @@ public class Inventory : MonoBehaviour
 					} else {
 						DestroyItem (i);
 					}
-					print ("asd");
 					break;			
 						
 				}
@@ -107,6 +107,7 @@ public class Inventory : MonoBehaviour
 				}
 			}
 		}
+		SaveInventoryItems ();
 	}
 
 	void Update ()
@@ -130,7 +131,7 @@ public class Inventory : MonoBehaviour
 				GameObject itemsGO = Instantiate (inventoryItem, slots [i].transform);
 				itemsGO.transform.SetAsFirstSibling ();
 				itemsGO.GetComponent <RectTransform> ().localScale = Vector3.one;
-				itemsGO.GetComponent <ItemData> ().slot = i;
+				itemsGO.GetComponent <ItemData> ().slotID = i;
 				itemsGO.GetComponent <ItemData> ().type = itemsToAdd.Type;			
 				itemsGO.GetComponent <ItemData> ().item = itemsToAdd;
 				itemsGO.GetComponent <Image> ().sprite = itemsToAdd.Sprite;
@@ -150,12 +151,53 @@ public class Inventory : MonoBehaviour
 		return false;
 	}
 
+	public int CheckItemAmountInInventory (int id) //do this by slots or items saved
+	{
+		int amount = 0;
+		for (int i = 0; i < slots.Count; i++) {
+			if (slots [i].transform.childCount > 0 && slots [i].transform.GetChild (0).CompareTag ("Item") && slots [i].transform.GetChild (0).GetComponent <ItemData> ().item.ID == id) {
+				amount += slots [i].transform.GetChild (0).GetComponent <ItemData> ().amount;				
+			}
+		}
+		return amount;
+	}
+
+	void SaveInventoryItems ()
+	{
+		// = new InventoryItems ();
+		for (int i = 0; i < slots.Count; i++) {
+			if (slots [i].transform.childCount > 0) {
+				myInventory [i] = new InventoryItems (slots [i].transform.GetChild (0).GetComponent <ItemData> ().item.ID,
+					slots [i].transform.GetChild (0).GetComponent <ItemData> ().amount,
+					slots [i].transform.GetChild (0).GetComponent <ItemData> ().slotID,
+					slots [i].transform.GetChild (0).GetComponent <ItemData> ().item.Health);
+			} else {
+				myInventory [i] = new InventoryItems ();
+			}
+		}
+		//print ("done");
+	}
+
+	void LoadInventoryItems ()
+	{
+		InventoryItems[] myInventory = new InventoryItems[slots.Count];// = new InventoryItems ();
+		for (int i = 0; i < slots.Count; i++) {
+			if (slots [i].transform.childCount > 0) {
+				myInventory [i].ID = slots [i].transform.GetChild (0).GetComponent <ItemData> ().item.ID;
+				myInventory [i].Amount = slots [i].transform.GetChild (0).GetComponent <ItemData> ().amount;
+				myInventory [i].SlotID = slots [i].transform.GetChild (0).GetComponent <ItemData> ().slotID;
+				myInventory [i].Health = slots [i].transform.GetChild (0).GetComponent <ItemData> ().item.Health;
+			} else {
+				myInventory [i] = new InventoryItems ();
+			}
+		}
+
+	}
+
 	public void AddItemButton ()
 	{
 		AddItem (inputFeildID);
 	}
-
-
 
 	void DestroyItem (int id)
 	{
@@ -196,5 +238,13 @@ public class InventoryItems
 		this.Amount = amount;
 		this.SlotID = slotID;
 		this.Health = health;
+	}
+
+	public InventoryItems ()
+	{
+		this.ID = -1;
+		this.Amount = -1;
+		this.SlotID = -1;
+		this.Health = -1;
 	}
 }

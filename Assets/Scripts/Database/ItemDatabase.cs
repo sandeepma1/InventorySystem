@@ -8,7 +8,7 @@ public class ItemDatabase : MonoBehaviour
 {
 	public static ItemDatabase m_instance = null;
 	public List<MyItem> database = new List<MyItem> ();
-	string folderName = "Items";
+	string fileName = "Items";
 	//private JsonData itemData;
 
 	void Awake ()
@@ -36,14 +36,16 @@ public class ItemDatabase : MonoBehaviour
 	{
 		string[] lines = new string[100];
 		string[] chars = new string[100];
-		TextAsset itemCSV =	Resources.Load ("CSV/" + folderName) as TextAsset;
+		TextAsset itemCSV =	Resources.Load ("CSV/" + fileName) as TextAsset;
 		lines = Regex.Split (itemCSV.text, "\r\n");
 		for (int i = 1; i < lines.Length - 1; i++) {			
 			chars = Regex.Split (lines [i], ",");
 
-			database.Add (new MyItem (IntParse (chars [0]), (ItemType)System.Enum.Parse (typeof(ItemType), chars [1]), chars [2], IntParse (chars [3]), 
-				IntParse (chars [4]), IntParse (chars [5]), IntParse (chars [6]), chars [7],
-				bool.Parse (chars [8]), IntParse (chars [9]), (chars [10])));
+			database.Add (new MyItem (IntParse (chars [0]), (ItemType)System.Enum.Parse (typeof(ItemType), chars [1]), 
+				chars [2], IntParse (chars [3]), IntParse (chars [4]), IntParse (chars [5]), IntParse (chars [6]), 
+				chars [7], bool.Parse (chars [8]), IntParse (chars [9]), (chars [10]), bool.Parse (chars [11]),
+				IntParse (chars [12]), IntParse (chars [13]), IntParse (chars [14]), IntParse (chars [15]), IntParse (chars [16]), 
+				IntParse (chars [17]), IntParse (chars [18]), IntParse (chars [19])));
 		}
 	}
 
@@ -89,14 +91,31 @@ public class MyItem
 
 	public string Slug{ get; set; }
 
+	public bool IsCraftable{ get; set; }
+
+	public int ItemID1{ get; set; }
+
+	public int ItemAmount1{ get; set; }
+
+	public int ItemID2{ get; set; }
+
+	public int ItemAmount2{ get; set; }
+
+	public int ItemID3{ get; set; }
+
+	public int ItemAmount3{ get; set; }
+
+	public int ItemID4{ get; set; }
+
+	public int ItemAmount4{ get; set; }
+
 	public Sprite Sprite{ get; set; }
 
-
-
-	public MyItem (int id, ItemType type, string name, int health, int power, int defence, int vitality, string description, bool stackable, int rarity, string slug)
+	public MyItem (int id, ItemType type, string name, int health, int power, int defence, int vitality, string description, 
+	               bool stackable, int rarity, string slug, bool iscraftable, int itemID1, int itemAmount1, int itemID2, int itemAmount2, 
+	               int itemID3, int itemAmount3, int itemID4, int itemAmount4)
 	{
 		this.ID = id;
-
 		this.Type = type;
 		this.Name = name;
 		this.Health = health;
@@ -105,8 +124,17 @@ public class MyItem
 		this.Vitality = vitality;
 		this.Description = description;
 		this.Stackable = stackable;
-		this.Rarity = rarity;
+		this.Rarity = rarity; //10
 		this.Slug = slug;
+		this.IsCraftable = iscraftable;
+		this.ItemID1 = itemID1;
+		this.ItemAmount1 = itemAmount1;
+		this.ItemID2 = itemID2;//15
+		this.ItemAmount2 = itemAmount2;
+		this.ItemID3 = itemID3;
+		this.ItemAmount3 = itemAmount3;
+		this.ItemID4 = itemID4;
+		this.ItemAmount4 = itemAmount4;//20
 		this.Sprite = Resources.Load <Sprite> ("Textures/Inventory/" + slug);
 	}
 

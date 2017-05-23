@@ -11,9 +11,9 @@ public class Slot : MonoBehaviour,IDropHandler, IPointerClickHandler
 	{
 		ItemData droppedItem = eventData.pointerDrag.GetComponent <ItemData> ();
 		if (Inventory.m_instance.items [id].ID == -1) {
-			Inventory.m_instance.items [droppedItem.slot] = new MyItem ();
+			Inventory.m_instance.items [droppedItem.slotID] = new MyItem ();
 			Inventory.m_instance.items [id] = droppedItem.item;
-			droppedItem.slot = id;
+			droppedItem.slotID = id;
 		} else {
 			Transform item = null;
 			foreach (Transform transforms in this.transform) {
@@ -22,14 +22,14 @@ public class Slot : MonoBehaviour,IDropHandler, IPointerClickHandler
 				}
 			}
 			if (item != null) {
-				item.GetComponent <ItemData> ().slot = droppedItem.slot;
-				item.transform.SetParent (Inventory.m_instance.slots [droppedItem.slot].transform);
-				item.transform.position = Inventory.m_instance.slots [droppedItem.slot].transform.position;
+				item.GetComponent <ItemData> ().slotID = droppedItem.slotID;
+				item.transform.SetParent (Inventory.m_instance.slots [droppedItem.slotID].transform);
+				item.transform.position = Inventory.m_instance.slots [droppedItem.slotID].transform.position;
 
-				Inventory.m_instance.items [droppedItem.slot] = item.GetComponent <ItemData> ().item;
+				Inventory.m_instance.items [droppedItem.slotID] = item.GetComponent <ItemData> ().item;
 				Inventory.m_instance.items [id] = droppedItem.item;
 
-				droppedItem.slot = id;
+				droppedItem.slotID = id;
 				droppedItem.transform.SetParent (this.transform);
 				droppedItem.transform.position = this.transform.position;
 			}
@@ -45,9 +45,6 @@ public class Slot : MonoBehaviour,IDropHandler, IPointerClickHandler
 	public void SelectSlot ()
 	{
 		Inventory.m_instance.slotSelectedImage.transform.parent = this.transform;
-		//	Inventory.m_instance.slotSelectedImage.GetComponent <RectTransform> ().SetAsFirstSibling ();
 		Inventory.m_instance.slotSelectedImage.GetComponent <RectTransform> ().anchoredPosition = Vector3.zero;
-		//Inventory.m_instance.PrintItems ();
-//		print (id + " " + transform.GetChild (0).GetComponent <ItemData> ().item.ID + " " + transform.GetChild (0).GetComponent <ItemData> ().item.Name);
 	}
 }
