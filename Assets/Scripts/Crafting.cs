@@ -33,14 +33,13 @@ public class Crafting : MonoBehaviour
 
 	public void CraftSelectedItem ()
 	{
-		if (selectedItemID >= 0) {
-			
-			if (CheckForRequiredItemsInInventory ()) { //if inventory has all the craftable items
+		if (selectedItemID >= 0) {			
+			if (CheckForRequiredItemsInInventory () && Inventory.m_instance.CheckInventoryHasAtleastOneSpace ()) { //if inventory has all the craftable items
 				RemoveItemsFromInventory ();
 				Inventory.m_instance.AddItem (selectedItemID);
 				print ("crafted item" + selectedItemID);
 			} else {
-				print ("missing Items");
+				print ("missing Items or inventory full");
 			}
 		}
 	}

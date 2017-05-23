@@ -113,13 +113,14 @@ public class Inventory : MonoBehaviour
 	void Update ()
 	{
 		if (Input.GetKeyDown (KeyCode.Space)) {
-			for (int i = 0; i < items.Count; i++) {			
+			/*for (int i = 0; i < items.Count; i++) {			
 				print (i + " " + items [i].ID + " " + items [i].Name);// items
 				if (slots [i].transform.childCount > 0 && slots [i].transform.GetChild (0).CompareTag ("Item")) {
 					print (i + " " + slots [i].transform.GetChild (0).GetComponent <ItemData> ().item.ID + " " + slots [i].transform.GetChild (0).GetComponent <ItemData> ().item.Name);
 				}
 
-			}
+			}*/
+			print (CheckInventoryHasAtleastOneSpace ());
 		}
 	}
 
@@ -162,11 +163,23 @@ public class Inventory : MonoBehaviour
 		return amount;
 	}
 
+	public bool CheckInventoryHasAtleastOneSpace ()
+	{
+		for (int i = 0; i < slots.Count; i++) {
+			if (slots [i].transform.childCount <= 0) {
+				return true;
+			} else if (!slots [i].transform.GetChild (0).CompareTag ("Item")) {
+				return true;
+			} 
+		}
+		return false;
+	}
+
 	void SaveInventoryItems ()
 	{
 		// = new InventoryItems ();
 		for (int i = 0; i < slots.Count; i++) {
-			if (slots [i].transform.childCount > 0) {
+			if (slots [i].transform.childCount > 0 && slots [i].transform.GetChild (0).CompareTag ("Item")) {
 				myInventory [i] = new InventoryItems (slots [i].transform.GetChild (0).GetComponent <ItemData> ().item.ID,
 					slots [i].transform.GetChild (0).GetComponent <ItemData> ().amount,
 					slots [i].transform.GetChild (0).GetComponent <ItemData> ().slotID,
@@ -182,7 +195,7 @@ public class Inventory : MonoBehaviour
 	{
 		InventoryItems[] myInventory = new InventoryItems[slots.Count];// = new InventoryItems ();
 		for (int i = 0; i < slots.Count; i++) {
-			if (slots [i].transform.childCount > 0) {
+			if (slots [i].transform.childCount > 0 && slots [i].transform.GetChild (0).CompareTag ("Item")) {
 				myInventory [i].ID = slots [i].transform.GetChild (0).GetComponent <ItemData> ().item.ID;
 				myInventory [i].Amount = slots [i].transform.GetChild (0).GetComponent <ItemData> ().amount;
 				myInventory [i].SlotID = slots [i].transform.GetChild (0).GetComponent <ItemData> ().slotID;
@@ -191,7 +204,6 @@ public class Inventory : MonoBehaviour
 				myInventory [i] = new InventoryItems ();
 			}
 		}
-
 	}
 
 	public void AddItemButton ()
