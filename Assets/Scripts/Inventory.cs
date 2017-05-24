@@ -8,14 +8,16 @@ public class Inventory : MonoBehaviour
 {
 	public static Inventory m_instance = null;
 	public GameObject inventorypanel;
-	public GameObject slotPanel;
-	public GameObject inventorySlot;
+	public GameObject inventorySlotPanel, armourSlotPanel;
+	public GameObject inventorySlot, armorSlot;
 	public GameObject inventoryItem;
-	public int slotAmount = 10;
+	public int inventorySlotAmount = 10, armourSlotAmount = 4;
 	public Image slotSelectedImage;
-	public List<MyItem> items = new List<MyItem> ();
-	public List<GameObject> slots = new List<GameObject> ();
+	public List<MyItem> l_items = new List<MyItem> ();
+	public List<GameObject> slotsGO = new List<GameObject> ();
 	public MyItem selectedItem = null;
+	public int selectedSlotID = -1;
+	public int maxStackAmount = 10;
 
 	int inputFeildID = -1, inputFeildAmount = -1;
 	InventoryItems[] myInventory;
@@ -27,14 +29,20 @@ public class Inventory : MonoBehaviour
 
 	void Start ()
 	{
-		for (int i = 0; i < slotAmount; i++) {
-			items.Add (new MyItem ());
-			slots.Add (Instantiate (inventorySlot, slotPanel.transform));
-			slots [i].GetComponent <Slot> ().id = i;
-			slots [i].GetComponent <RectTransform> ().localScale = Vector3.one;
+		for (int i = 0; i < inventorySlotAmount; i++) {
+			l_items.Add (new MyItem ());
+			slotsGO.Add (Instantiate (inventorySlot, inventorySlotPanel.transform));
+			slotsGO [i].GetComponent <InventorySlot> ().id = i;
+			slotsGO [i].GetComponent <RectTransform> ().localScale = Vector3.one;
+		}
+		for (int i = inventorySlotAmount; i < inventorySlotAmount + armourSlotAmount; i++) {
+			l_items.Add (new MyItem ());
+			slotsGO.Add (Instantiate (armorSlot, armourSlotPanel.transform));
+			slotsGO [i].GetComponent <ArmourSlot> ().id = i;
+			slotsGO [i].GetComponent <RectTransform> ().localScale = Vector3.one;
 		}
 
-		myInventory = new InventoryItems[slots.Count];
+		myInventory = new InventoryItems[slotsGO.Count];
 
 		AddItem (3);
 		AddItem (2);
@@ -51,15 +59,15 @@ public class Inventory : MonoBehaviour
 		List<int> occurance = new List<int> ();
 		MyItem itemsToAdd = ItemDatabase.m_instance.FetchItemByID (id);	
 		if (itemsToAdd.Stackable) {
-			for (int i = 0; i < items.Count; i++) {								
-				if (items [i].ID == id) {
+			for (int i = 0; i < l_items.Count; i++) {								
+				if (l_items [i].ID == id) {
 					occurance.Add (i);					
 				}
 			}
 			if (occurance.Count > 0) {
 				for (int i = 0; i < occurance.Count; i++) {					
-					ItemData data = slots [occurance [i]].transform.GetChild (0).GetComponent <ItemData> ();
-					if (data.amount > 9) {
+					InventoryItemData data = slotsGO [occurance [i]].transform.GetChild (0).GetComponent <InventoryItemData> ();
+					if (data.amount >= maxStackAmount) {
 						if (i == occurance.Count - 1) {
 							AddNewItemInUI (itemsToAdd);
 						} else {
@@ -69,7 +77,7 @@ public class Inventory : MonoBehaviour
 						data.amount++;
 						data.transform.GetChild (0).GetComponent <Text> ().text = data.amount.ToString ();
 						break;
-					}	
+					}
 				}
 			} else {
 				AddNewItemInUI (itemsToAdd);
@@ -81,27 +89,25 @@ public class Inventory : MonoBehaviour
 	}
 
 	public void RemoveItem (int id)
-	{
-		id = inputFeildID;
+	{		
 		MyItem itemsToRemove = ItemDatabase.m_instance.FetchItemByID (id);
-
+		//print ("removed " + itemsToRemove.Name);
 		if (itemsToRemove.Stackable) {
-			for (int i = 0; i < items.Count; i++) {								
-				if (items [i].ID == id) {
-					ItemData data = slots [i].transform.GetChild (0).GetComponent <ItemData> ();
+			for (int i = 0; i < l_items.Count; i++) {								
+				if (l_items [i].ID == id) {
+					InventoryItemData data = slotsGO [i].transform.GetChild (0).GetComponent <InventoryItemData> ();
 					if (data.amount > 1) {
 						data.amount--;	
 						data.transform.GetChild (0).GetComponent <Text> ().text = data.amount.ToString ();
 					} else {
 						DestroyItem (i);
 					}
-					break;			
-						
+					break;						
 				}
 			}
 		} else {
-			for (int i = 0; i < items.Count; i++) {								
-				if (items [i].ID == id) {
+			for (int i = 0; i < l_items.Count; i++) {								
+				if (l_items [i].ID == id) {
 					DestroyItem (i);
 					break;
 				}
@@ -110,42 +116,56 @@ public class Inventory : MonoBehaviour
 		SaveInventoryItems ();
 	}
 
+	public void DeleteSelectedItem ()
+	{
+		if (selectedSlotID >= 0 && slotsGO [selectedSlotID].transform.childCount > 0 && slotsGO [selectedSlotID].transform.GetChild (0).CompareTag ("Item")) {
+			l_items [selectedSlotID] = new MyItem ();
+			Destroy (slotsGO [selectedSlotID].transform.GetChild (0).gameObject);
+		}
+	}
+
 	void Update ()
 	{
 		if (Input.GetKeyDown (KeyCode.Space)) {
-			/*for (int i = 0; i < items.Count; i++) {			
-				print (i + " " + items [i].ID + " " + items [i].Name);// items
-				if (slots [i].transform.childCount > 0 && slots [i].transform.GetChild (0).CompareTag ("Item")) {
-					print (i + " " + slots [i].transform.GetChild (0).GetComponent <ItemData> ().item.ID + " " + slots [i].transform.GetChild (0).GetComponent <ItemData> ().item.Name);
-				}
+			for (int i = 0; i < slotsGO.Count; i++) {			
+				print (slotsGO [i].GetComponent <InventorySlot> ().id + " " + l_items [i].ID);
 
-			}*/
+			}
 			print (CheckInventoryHasAtleastOneSpace ());
 		}
 	}
 
 	void AddNewItemInUI (MyItem itemsToAdd)
 	{
-		for (int i = 0; i < items.Count; i++) {
-			if (items [i].ID == -1) {
-				items [i] = itemsToAdd;
-				GameObject itemsGO = Instantiate (inventoryItem, slots [i].transform);
-				itemsGO.transform.SetAsFirstSibling ();
-				itemsGO.GetComponent <RectTransform> ().localScale = Vector3.one;
-				itemsGO.GetComponent <ItemData> ().slotID = i;
-				itemsGO.GetComponent <ItemData> ().type = itemsToAdd.Type;			
-				itemsGO.GetComponent <ItemData> ().item = itemsToAdd;
-				itemsGO.GetComponent <Image> ().sprite = itemsToAdd.Sprite;
-				itemsGO.GetComponent <RectTransform> ().anchoredPosition = Vector3.one;
-				break;
+		if (CheckInventoryHasAtleastOneSpace ()) {
+			for (int i = 0; i < l_items.Count - armourSlotAmount; i++) {
+				if (l_items [i].ID == -1) {
+					l_items [i] = itemsToAdd;
+					GameObject itemsGO = Instantiate (inventoryItem, slotsGO [i].transform);
+					itemsGO.transform.SetAsFirstSibling ();
+					itemsGO.GetComponent <RectTransform> ().localScale = Vector3.one;
+					itemsGO.GetComponent <InventoryItemData> ().slotID = i;
+					itemsGO.GetComponent <InventoryItemData> ().type = itemsToAdd.Type;			
+					if (itemsToAdd.Durability > 0) {
+						itemsGO.GetComponent <InventoryItemData> ().durability = itemsToAdd.Durability;
+						itemsGO.transform.GetChild (1).GetComponent <RectTransform> ().sizeDelta = new Vector2 (90, 10);
+					} else {
+						itemsGO.GetComponent <InventoryItemData> ().durability = -1;
+						itemsGO.transform.GetChild (1).GetComponent <RectTransform> ().sizeDelta = new Vector2 (0, 10);
+					}
+					itemsGO.GetComponent <InventoryItemData> ().item = itemsToAdd;
+					itemsGO.GetComponent <Image> ().sprite = itemsToAdd.Sprite;
+					itemsGO.GetComponent <RectTransform> ().anchoredPosition = Vector3.one;
+					break;
+				}
 			}
 		}
 	}
 
 	bool CheckItemInInventory (MyItem item)
 	{
-		for (int i = 0; i < items.Count; i++) {
-			if (items [i].ID == item.ID) {
+		for (int i = 0; i < l_items.Count - armourSlotAmount; i++) {
+			if (l_items [i].ID == item.ID) {
 				return true;
 			}
 		}
@@ -155,9 +175,9 @@ public class Inventory : MonoBehaviour
 	public int CheckItemAmountInInventory (int id) //do this by slots or items saved
 	{
 		int amount = 0;
-		for (int i = 0; i < slots.Count; i++) {
-			if (slots [i].transform.childCount > 0 && slots [i].transform.GetChild (0).CompareTag ("Item") && slots [i].transform.GetChild (0).GetComponent <ItemData> ().item.ID == id) {
-				amount += slots [i].transform.GetChild (0).GetComponent <ItemData> ().amount;				
+		for (int i = 0; i < slotsGO.Count; i++) {
+			if (slotsGO [i].transform.childCount > 0 && slotsGO [i].transform.GetChild (0).CompareTag ("Item") && slotsGO [i].transform.GetChild (0).GetComponent <InventoryItemData> ().item.ID == id) {
+				amount += slotsGO [i].transform.GetChild (0).GetComponent <InventoryItemData> ().amount;				
 			}
 		}
 		return amount;
@@ -165,10 +185,10 @@ public class Inventory : MonoBehaviour
 
 	public bool CheckInventoryHasAtleastOneSpace ()
 	{
-		for (int i = 0; i < slots.Count; i++) {
-			if (slots [i].transform.childCount <= 0) {
+		for (int i = 0; i < slotsGO.Count - armourSlotAmount; i++) {
+			if (slotsGO [i].transform.childCount <= 0) {
 				return true;
-			} else if (!slots [i].transform.GetChild (0).CompareTag ("Item")) {
+			} else if (!slotsGO [i].transform.GetChild (0).CompareTag ("Item")) {
 				return true;
 			} 
 		}
@@ -177,13 +197,13 @@ public class Inventory : MonoBehaviour
 
 	void SaveInventoryItems ()
 	{
-		// = new InventoryItems ();
-		for (int i = 0; i < slots.Count; i++) {
-			if (slots [i].transform.childCount > 0 && slots [i].transform.GetChild (0).CompareTag ("Item")) {
-				myInventory [i] = new InventoryItems (slots [i].transform.GetChild (0).GetComponent <ItemData> ().item.ID,
-					slots [i].transform.GetChild (0).GetComponent <ItemData> ().amount,
-					slots [i].transform.GetChild (0).GetComponent <ItemData> ().slotID,
-					slots [i].transform.GetChild (0).GetComponent <ItemData> ().item.Health);
+		Crafting.m_instance.CheckHighlightCraftableItems ();
+		for (int i = 0; i < slotsGO.Count; i++) {
+			if (slotsGO [i].transform.childCount > 0 && slotsGO [i].transform.GetChild (0).CompareTag ("Item")) {
+				myInventory [i] = new InventoryItems (slotsGO [i].transform.GetChild (0).GetComponent <InventoryItemData> ().item.ID,
+					slotsGO [i].transform.GetChild (0).GetComponent <InventoryItemData> ().amount,
+					slotsGO [i].transform.GetChild (0).GetComponent <InventoryItemData> ().slotID,
+					slotsGO [i].transform.GetChild (0).GetComponent <InventoryItemData> ().item.Durability);
 			} else {
 				myInventory [i] = new InventoryItems ();
 			}
@@ -193,16 +213,25 @@ public class Inventory : MonoBehaviour
 
 	void LoadInventoryItems ()
 	{
-		InventoryItems[] myInventory = new InventoryItems[slots.Count];// = new InventoryItems ();
-		for (int i = 0; i < slots.Count; i++) {
-			if (slots [i].transform.childCount > 0 && slots [i].transform.GetChild (0).CompareTag ("Item")) {
-				myInventory [i].ID = slots [i].transform.GetChild (0).GetComponent <ItemData> ().item.ID;
-				myInventory [i].Amount = slots [i].transform.GetChild (0).GetComponent <ItemData> ().amount;
-				myInventory [i].SlotID = slots [i].transform.GetChild (0).GetComponent <ItemData> ().slotID;
-				myInventory [i].Health = slots [i].transform.GetChild (0).GetComponent <ItemData> ().item.Health;
+		InventoryItems[] myInventory = new InventoryItems[slotsGO.Count];// = new InventoryItems ();
+		for (int i = 0; i < slotsGO.Count; i++) {
+			if (slotsGO [i].transform.childCount > 0 && slotsGO [i].transform.GetChild (0).CompareTag ("Item")) {
+				myInventory [i].ID = slotsGO [i].transform.GetChild (0).GetComponent <InventoryItemData> ().item.ID;
+				myInventory [i].Amount = slotsGO [i].transform.GetChild (0).GetComponent <InventoryItemData> ().amount;
+				myInventory [i].SlotID = slotsGO [i].transform.GetChild (0).GetComponent <InventoryItemData> ().slotID;
+				myInventory [i].Health = slotsGO [i].transform.GetChild (0).GetComponent <InventoryItemData> ().item.Durability;
 			} else {
 				myInventory [i] = new InventoryItems ();
 			}
+		}
+	}
+
+	public void DecreseWeaponDurability (int amount)
+	{
+		if (selectedSlotID >= 0 && slotsGO [selectedSlotID].transform.childCount > 0 &&
+		    slotsGO [selectedSlotID].transform.GetChild (0).CompareTag ("Item") &&
+		    slotsGO [selectedSlotID].transform.GetChild (0).GetComponent <InventoryItemData> ().durability >= 0) {
+			slotsGO [selectedSlotID].transform.GetChild (0).GetComponent <InventoryItemData> ().DecreaseItemDurability (amount);
 		}
 	}
 
@@ -211,10 +240,20 @@ public class Inventory : MonoBehaviour
 		AddItem (inputFeildID);
 	}
 
-	void DestroyItem (int id)
+	public void RemoveItemButton ()
 	{
-		Destroy (slots [id].transform.GetChild (0).gameObject);	
-		items [id] = new MyItem ();
+		RemoveItem (inputFeildID);
+	}
+
+	public void DestroyItem (int id)
+	{
+		for (int i = 0; i < slotsGO [id].transform.childCount; i++) {
+			if (slotsGO [id].transform.GetChild (i).CompareTag ("Item")) {
+				Destroy (slotsGO [id].transform.GetChild (i).gameObject);	
+			}
+		}
+
+		l_items [id] = new MyItem ();
 	}
 
 	public void InputFeildID (string text)

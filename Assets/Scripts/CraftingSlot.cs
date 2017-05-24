@@ -11,8 +11,8 @@ public class CraftingSlot : MonoBehaviour,IPointerClickHandler
 	public void OnPointerClick (PointerEventData eventData)
 	{		
 		Crafting.m_instance.slotSelectedImage.transform.parent = this.transform;
-		Crafting.m_instance.slotSelectedImage.GetComponent <RectTransform> ().SetAsFirstSibling ();
 		Crafting.m_instance.slotSelectedImage.GetComponent <RectTransform> ().anchoredPosition = Vector3.zero;
 		Crafting.m_instance.selectedItemID = itemID;
+		Crafting.m_instance.slotSelectedImage.transform.SetAsLastSibling ();
 	}
 }

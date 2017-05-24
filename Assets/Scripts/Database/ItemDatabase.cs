@@ -75,7 +75,7 @@ public class MyItem
 
 	public string Name{ get; set; }
 
-	public int Health{ get; set; }
+	public int Durability{ get; set; }
 
 	public int Power{ get; set; }
 
@@ -91,7 +91,7 @@ public class MyItem
 
 	public string Slug{ get; set; }
 
-	public bool IsCraftable{ get; set; }
+	public bool IsPlaceable{ get; set; }
 
 	public int ItemID1{ get; set; }
 
@@ -111,14 +111,14 @@ public class MyItem
 
 	public Sprite Sprite{ get; set; }
 
-	public MyItem (int id, ItemType type, string name, int health, int power, int defence, int vitality, string description, 
-	               bool stackable, int rarity, string slug, bool iscraftable, int itemID1, int itemAmount1, int itemID2, int itemAmount2, 
+	public MyItem (int id, ItemType type, string name, int durability, int power, int defence, int vitality, string description, 
+	               bool stackable, int rarity, string slug, bool isplaceable, int itemID1, int itemAmount1, int itemID2, int itemAmount2, 
 	               int itemID3, int itemAmount3, int itemID4, int itemAmount4)
 	{
 		this.ID = id;
 		this.Type = type;
 		this.Name = name;
-		this.Health = health;
+		this.Durability = durability;
 		this.Power = power;
 		this.Defence = defence;
 		this.Vitality = vitality;
@@ -126,7 +126,7 @@ public class MyItem
 		this.Stackable = stackable;
 		this.Rarity = rarity; //10
 		this.Slug = slug;
-		this.IsCraftable = iscraftable;
+		this.IsPlaceable = isplaceable;
 		this.ItemID1 = itemID1;
 		this.ItemAmount1 = itemAmount1;
 		this.ItemID2 = itemID2;//15
@@ -149,6 +149,7 @@ public enum ItemType
 	item,
 	weapon,
 	armor,
-	building
+	building,
+	consumable
 
 }

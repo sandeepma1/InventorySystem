@@ -11,7 +11,7 @@ public class Crafting : MonoBehaviour
 	public GameObject craftSlot;
 	public Image slotSelectedImage;
 	public int[] craftingItems;
-	public List<GameObject> craftingSlots = new List<GameObject> ();
+	public List<GameObject> craftingSlotsGO = new List<GameObject> ();
 
 	public int selectedItemID = -1;
 
@@ -21,20 +21,32 @@ public class Crafting : MonoBehaviour
 	}
 
 	void Start ()
-	{
+	{		
 		for (int i = 0; i < craftingItems.Length; i++) {		
-			craftingSlots.Add (Instantiate (craftSlot, craftPanel.transform));
-			craftingSlots [i].GetComponent <CraftingSlot> ().id = i;
-			craftingSlots [i].GetComponent <CraftingSlot> ().itemID = craftingItems [i];
-			craftingSlots [i].GetComponent <RectTransform> ().localScale = Vector3.one;
-			craftingSlots [i].transform.GetChild (0).GetComponent<Image> ().sprite = ItemDatabase.m_instance.database [craftingItems [i]].Sprite;
+			craftingSlotsGO.Add (Instantiate (craftSlot, craftPanel.transform));
+			craftingSlotsGO [i].GetComponent <CraftingSlot> ().id = i;
+			craftingSlotsGO [i].GetComponent <CraftingSlot> ().itemID = craftingItems [i];
+			craftingSlotsGO [i].GetComponent <RectTransform> ().localScale = Vector3.one;
+			craftingSlotsGO [i].transform.GetChild (0).GetComponent<Image> ().sprite = ItemDatabase.m_instance.database [craftingItems [i]].Sprite;
+		}
+		CheckHighlightCraftableItems ();
+	}
+
+	public void CheckHighlightCraftableItems ()
+	{
+		for (int i = 0; i < craftingItems.Length; i++) {
+			if (CheckForRequiredItemsInInventory (craftingItems [i])) {
+				craftingSlotsGO [i].transform.GetChild (0).GetComponent<Image> ().color = new Color (1, 1, 1, 1);
+			} else {
+				craftingSlotsGO [i].transform.GetChild (0).GetComponent<Image> ().color = new Color (0, 0, 0, 1);
+			}
 		}
 	}
 
 	public void CraftSelectedItem ()
 	{
 		if (selectedItemID >= 0) {			
-			if (CheckForRequiredItemsInInventory () && Inventory.m_instance.CheckInventoryHasAtleastOneSpace ()) { //if inventory has all the craftable items
+			if (CheckForRequiredItemsInInventory (selectedItemID) && Inventory.m_instance.CheckInventoryHasAtleastOneSpace ()) { //if inventory has all the craftable items
 				RemoveItemsFromInventory ();
 				Inventory.m_instance.AddItem (selectedItemID);
 				print ("crafted item" + selectedItemID);
@@ -47,14 +59,17 @@ public class Crafting : MonoBehaviour
 	void RemoveItemsFromInventory ()
 	{
 		MyItem itemToCraft = ItemDatabase.m_instance.FetchItemByID (selectedItemID);
+
 		if (itemToCraft.ItemID1 >= 0) {
 			for (int i = 0; i < itemToCraft.ItemAmount1; i++) {
 				Inventory.m_instance.RemoveItem (itemToCraft.ItemID1);
+				print ("removed " + itemToCraft.ItemID1);
 			}
 		}
 		if (itemToCraft.ItemID2 >= 0) {
 			for (int i = 0; i < itemToCraft.ItemAmount2; i++) {
-				Inventory.m_instance.RemoveItem (itemToCraft.ItemID2);			
+				Inventory.m_instance.RemoveItem (itemToCraft.ItemID2);		
+				print ("removed " + itemToCraft.ItemID2);	
 			}
 		}
 		if (itemToCraft.ItemID3 >= 0) {
@@ -69,9 +84,9 @@ public class Crafting : MonoBehaviour
 		}
 	}
 
-	bool CheckForRequiredItemsInInventory ()
+	bool CheckForRequiredItemsInInventory (int id)
 	{
-		MyItem itemToCraft = ItemDatabase.m_instance.FetchItemByID (selectedItemID);
+		MyItem itemToCraft = ItemDatabase.m_instance.FetchItemByID (id);
 		bool item1 = false;
 		bool item2 = false;
 		bool item3 = false;

@@ -3,20 +3,26 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class ItemData : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
+public class InventoryItemData : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
 	public MyItem item;
-	public int id = 0;
 	public int amount = 1;
+	public int durability = 0;
 	public ItemType type;
 	public int slotID;
+
+	float durabilityPercentage = 0.0f;
 	Vector2 offset = new Vector2 (10, 0);
 
-	void Start ()
+	public void DecreaseItemDurability (int damage)
 	{
-		id = item.ID;
+		durability -= damage;
+		durabilityPercentage = (durability * 1.0f / item.Durability * 1.0f) * 100;
+		if (durability <= 0) {
+			Inventory.m_instance.DeleteSelectedItem ();
+		}
+		transform.GetChild (1).GetComponent <RectTransform> ().sizeDelta = new Vector2 (durabilityPercentage * 0.9f, 10);
 	}
-	//remove id variable later
 
 	public void OnBeginDrag (PointerEventData eventData)
 	{
@@ -38,9 +44,9 @@ public class ItemData : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDrag
 
 	public void OnEndDrag (PointerEventData eventData)
 	{
-		this.transform.SetParent (Inventory.m_instance.slots [slotID].transform);
+		this.transform.SetParent (Inventory.m_instance.slotsGO [slotID].transform);
 		this.transform.SetAsFirstSibling ();	
-		this.transform.position = Inventory.m_instance.slots [slotID].transform.position;
+		this.transform.position = Inventory.m_instance.slotsGO [slotID].transform.position;
 		GetComponent <CanvasGroup> ().blocksRaycasts = true;
 	}
 
