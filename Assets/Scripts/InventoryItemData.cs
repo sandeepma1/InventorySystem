@@ -10,6 +10,7 @@ public class InventoryItemData : MonoBehaviour, IBeginDragHandler, IDragHandler,
 	public int durability = 0;
 	public ItemType type;
 	public int slotID;
+	public bool isChestItem = false;
 
 	float durabilityPercentage = 0.0f;
 	Vector2 offset = new Vector2 (10, 0);
@@ -44,9 +45,15 @@ public class InventoryItemData : MonoBehaviour, IBeginDragHandler, IDragHandler,
 
 	public void OnEndDrag (PointerEventData eventData)
 	{
-		this.transform.SetParent (Inventory.m_instance.slotsGO [slotID].transform);
-		this.transform.SetAsFirstSibling ();	
-		this.transform.position = Inventory.m_instance.slotsGO [slotID].transform.position;
+		if (!isChestItem) {
+			this.transform.SetParent (Inventory.m_instance.slotsGO [slotID].transform);
+			this.transform.SetAsFirstSibling ();	
+			this.transform.position = Inventory.m_instance.slotsGO [slotID].transform.position;
+		} else {
+			this.transform.SetParent (Chest.m_instance.slotsGO [slotID].transform);
+			this.transform.SetAsFirstSibling ();	
+			this.transform.position = Chest.m_instance.slotsGO [slotID].transform.position;
+		}
 		GetComponent <CanvasGroup> ().blocksRaycasts = true;
 	}
 

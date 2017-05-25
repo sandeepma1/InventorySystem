@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-using System.Linq;
 
 public class Inventory : MonoBehaviour
 {
@@ -18,6 +17,7 @@ public class Inventory : MonoBehaviour
 	public MyItem selectedItem = null;
 	public int selectedSlotID = -1;
 	public int maxStackAmount = 10;
+	public Text debug;
 
 	int inputFeildID = -1, inputFeildAmount = -1;
 	InventoryItems[] myInventory;
@@ -51,7 +51,6 @@ public class Inventory : MonoBehaviour
 		AddItem (1);
 		AddItem (1);
 		AddItem (7);
-
 	}
 
 	public void AddItem (int id)
@@ -126,12 +125,17 @@ public class Inventory : MonoBehaviour
 
 	void Update ()
 	{
+		/*foreach (var item in l_items) {
+			if (item != null) {
+				debug.text = item.ID + " " + item.Name;
+			}
+
+		}*/
 		if (Input.GetKeyDown (KeyCode.Space)) {
 			for (int i = 0; i < slotsGO.Count; i++) {			
-				print (slotsGO [i].GetComponent <InventorySlot> ().id + " " + l_items [i].ID);
-
+				print ("inv " + slotsGO [i].GetComponent <InventorySlot> ().id + " " + l_items [i].ID);
 			}
-			print (CheckInventoryHasAtleastOneSpace ());
+			//print (CheckInventoryHasAtleastOneSpace ());
 		}
 	}
 
@@ -197,6 +201,11 @@ public class Inventory : MonoBehaviour
 
 	void SaveInventoryItems ()
 	{
+		foreach (var item in l_items) {
+			if (item != null) {
+				//print (item.ID + " " + item.Name);
+			}
+		}
 		Crafting.m_instance.CheckHighlightCraftableItems ();
 		for (int i = 0; i < slotsGO.Count; i++) {
 			if (slotsGO [i].transform.childCount > 0 && slotsGO [i].transform.GetChild (0).CompareTag ("Item")) {

@@ -11,45 +11,100 @@ public class InventorySlot : MonoBehaviour,IDropHandler, IPointerClickHandler,IP
 	public void OnDrop (PointerEventData eventData)
 	{
 		InventoryItemData droppedItem = eventData.pointerDrag.GetComponent <InventoryItemData> ();
-		if (Inventory.m_instance.l_items [id].ID == -1) {
-			Inventory.m_instance.l_items [droppedItem.slotID] = new MyItem ();
+
+		if (droppedItem.isChestItem) {
+			Chest.m_instance.l_items [droppedItem.slotID] = new MyItem ();
 			Inventory.m_instance.l_items [id] = droppedItem.item;
 			droppedItem.slotID = id;
-		} else {
-			if (droppedItem.slotID >= Inventory.m_instance.inventorySlotAmount) {
-				return;
-			}
-			Transform item = null;
-			foreach (Transform transforms in this.transform) {
-				if (transforms.CompareTag ("Item")) {
-					item = transforms;
+			droppedItem.isChestItem = false;
+			droppedItem.transform.SetParent (Inventory.m_instance.slotsGO [id].transform);
+			droppedItem.transform.SetAsFirstSibling ();	
+			droppedItem.transform.position = Inventory.m_instance.slotsGO [id].transform.position;
+
+			if (Chest.m_instance.l_items [id].ID == -1) {
+				Chest.m_instance.l_items [droppedItem.slotID] = new MyItem ();
+				Chest.m_instance.l_items [id] = droppedItem.item;
+				droppedItem.slotID = id;
+			} else {
+				if (droppedItem.slotID >= Inventory.m_instance.inventorySlotAmount) {
+					return;
+				}
+				Transform item = null;
+				foreach (Transform transforms in this.transform) {
+					if (transforms.CompareTag ("Item")) {
+						item = transforms;
+					}
+				}
+				if (item != null) {
+					if (item.GetComponent <InventoryItemData> ().item.ID == droppedItem.item.ID && droppedItem.item.Stackable) {	//if item is dropped on	same item
+						if (item.GetComponent <InventoryItemData> ().amount + droppedItem.amount > Inventory.m_instance.maxStackAmount) { //if both item sum is grater tahn max stack amount
+							droppedItem.amount = (item.GetComponent <InventoryItemData> ().amount + droppedItem.amount) - Inventory.m_instance.maxStackAmount;
+							droppedItem.transform.GetChild (0).GetComponent <Text> ().text = droppedItem.amount.ToString ();
+							item.GetComponent <InventoryItemData> ().amount = Inventory.m_instance.maxStackAmount;
+							item.GetComponent <InventoryItemData> ().transform.GetChild (0).GetComponent <Text> ().text = item.GetComponent <InventoryItemData> ().amount.ToString ();
+						} else {
+							item.GetComponent <InventoryItemData> ().amount += droppedItem.amount;
+							item.GetComponent <InventoryItemData> ().transform.GetChild (0).GetComponent <Text> ().text = item.GetComponent <InventoryItemData> ().amount.ToString ();
+							Chest.m_instance.l_items [droppedItem.slotID] = new MyItem ();
+							Destroy (droppedItem.gameObject);
+							print ("added and deleted down item " + droppedItem.GetComponent <InventoryItemData> ().item.Name);
+						}				
+					} else {//swap if not same item
+						item.GetComponent <InventoryItemData> ().slotID = droppedItem.slotID;
+						item.transform.SetParent (Chest.m_instance.slotsGO [droppedItem.slotID].transform);
+						item.transform.position = Chest.m_instance.slotsGO [droppedItem.slotID].transform.position;
+
+						Chest.m_instance.l_items [droppedItem.slotID] = item.GetComponent <InventoryItemData> ().item;
+						Chest.m_instance.l_items [id] = droppedItem.item;
+
+						droppedItem.slotID = id;
+						droppedItem.transform.SetParent (this.transform);
+						droppedItem.transform.position = this.transform.position;
+					}
 				}
 			}
-			if (item != null) {
-				if (item.GetComponent <InventoryItemData> ().item.ID == droppedItem.item.ID && droppedItem.item.Stackable) {	//if item is dropped on	same item
-					if (item.GetComponent <InventoryItemData> ().amount + droppedItem.amount > Inventory.m_instance.maxStackAmount) { //if both item sum is grater tahn max stack amount
-						droppedItem.amount = (item.GetComponent <InventoryItemData> ().amount + droppedItem.amount) - Inventory.m_instance.maxStackAmount;
-						droppedItem.transform.GetChild (0).GetComponent <Text> ().text = droppedItem.amount.ToString ();
-						item.GetComponent <InventoryItemData> ().amount = Inventory.m_instance.maxStackAmount;
-						item.GetComponent <InventoryItemData> ().transform.GetChild (0).GetComponent <Text> ().text = item.GetComponent <InventoryItemData> ().amount.ToString ();
-					} else {						
-						item.GetComponent <InventoryItemData> ().amount += droppedItem.amount;
-						item.GetComponent <InventoryItemData> ().transform.GetChild (0).GetComponent <Text> ().text = item.GetComponent <InventoryItemData> ().amount.ToString ();
-						Inventory.m_instance.l_items [droppedItem.slotID] = new MyItem ();
-						Destroy (droppedItem.gameObject);
-						print ("added and deleted down item " + droppedItem.GetComponent <InventoryItemData> ().item.Name);
-					}				
-				} else {//swap if not same item
-					item.GetComponent <InventoryItemData> ().slotID = droppedItem.slotID;
-					item.transform.SetParent (Inventory.m_instance.slotsGO [droppedItem.slotID].transform);
-					item.transform.position = Inventory.m_instance.slotsGO [droppedItem.slotID].transform.position;
 
-					Inventory.m_instance.l_items [droppedItem.slotID] = item.GetComponent <InventoryItemData> ().item;
-					Inventory.m_instance.l_items [id] = droppedItem.item;
+		} else {
+			if (Inventory.m_instance.l_items [id].ID == -1) {
+				Inventory.m_instance.l_items [droppedItem.slotID] = new MyItem ();
+				Inventory.m_instance.l_items [id] = droppedItem.item;
+				droppedItem.slotID = id;
+			} else {
+				if (droppedItem.slotID >= Inventory.m_instance.inventorySlotAmount) {
+					return;
+				}
+				Transform item = null;
+				foreach (Transform transforms in this.transform) {
+					if (transforms.CompareTag ("Item")) {
+						item = transforms;
+					}
+				}
+				if (item != null) {
+					if (item.GetComponent <InventoryItemData> ().item.ID == droppedItem.item.ID && droppedItem.item.Stackable) {	//if item is dropped on	same item
+						if (item.GetComponent <InventoryItemData> ().amount + droppedItem.amount > Inventory.m_instance.maxStackAmount) { //if both item sum is grater tahn max stack amount
+							droppedItem.amount = (item.GetComponent <InventoryItemData> ().amount + droppedItem.amount) - Inventory.m_instance.maxStackAmount;
+							droppedItem.transform.GetChild (0).GetComponent <Text> ().text = droppedItem.amount.ToString ();
+							item.GetComponent <InventoryItemData> ().amount = Inventory.m_instance.maxStackAmount;
+							item.GetComponent <InventoryItemData> ().transform.GetChild (0).GetComponent <Text> ().text = item.GetComponent <InventoryItemData> ().amount.ToString ();
+						} else {
+							item.GetComponent <InventoryItemData> ().amount += droppedItem.amount;
+							item.GetComponent <InventoryItemData> ().transform.GetChild (0).GetComponent <Text> ().text = item.GetComponent <InventoryItemData> ().amount.ToString ();
+							Inventory.m_instance.l_items [droppedItem.slotID] = new MyItem ();
+							Destroy (droppedItem.gameObject);
+							print ("added and deleted down item " + droppedItem.GetComponent <InventoryItemData> ().item.Name);
+						}				
+					} else {//swap if not same item
+						item.GetComponent <InventoryItemData> ().slotID = droppedItem.slotID;
+						item.transform.SetParent (Inventory.m_instance.slotsGO [droppedItem.slotID].transform);
+						item.transform.position = Inventory.m_instance.slotsGO [droppedItem.slotID].transform.position;
 
-					droppedItem.slotID = id;
-					droppedItem.transform.SetParent (this.transform);
-					droppedItem.transform.position = this.transform.position;
+						Inventory.m_instance.l_items [droppedItem.slotID] = item.GetComponent <InventoryItemData> ().item;
+						Inventory.m_instance.l_items [id] = droppedItem.item;
+
+						droppedItem.slotID = id;
+						droppedItem.transform.SetParent (this.transform);
+						droppedItem.transform.position = this.transform.position;
+					}
 				}
 			}
 		}
