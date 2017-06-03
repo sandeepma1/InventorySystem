@@ -10,10 +10,9 @@ public class InventoryItemData : MonoBehaviour, IBeginDragHandler, IDragHandler,
 	public int durability = 0;
 	public ItemType type;
 	public int slotID;
-	public bool isChestItem = false;
 
 	float durabilityPercentage = 0.0f;
-	Vector2 offset = new Vector2 (10, 0);
+	Vector2 offset = new Vector2 (100, 100);
 
 	public void DecreaseItemDurability (int damage)
 	{
@@ -44,17 +43,12 @@ public class InventoryItemData : MonoBehaviour, IBeginDragHandler, IDragHandler,
 	}
 
 	public void OnEndDrag (PointerEventData eventData)
-	{
-		if (!isChestItem) {
-			this.transform.SetParent (Inventory.m_instance.slotsGO [slotID].transform);
-			this.transform.SetAsFirstSibling ();	
-			this.transform.position = Inventory.m_instance.slotsGO [slotID].transform.position;
-		} else {
-			this.transform.SetParent (Chest.m_instance.slotsGO [slotID].transform);
-			this.transform.SetAsFirstSibling ();	
-			this.transform.position = Chest.m_instance.slotsGO [slotID].transform.position;
-		}
+	{		
+		this.transform.SetParent (Inventory.m_instance.slotsGO [slotID].transform);
+		this.transform.SetAsFirstSibling ();	
+		this.transform.position = Inventory.m_instance.slotsGO [slotID].transform.position;		
 		GetComponent <CanvasGroup> ().blocksRaycasts = true;
+		Crafting.m_instance.CheckHighlight_ALL_CraftableItems ();
 	}
 
 	public void SelectedItem ()

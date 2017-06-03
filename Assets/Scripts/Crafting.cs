@@ -6,7 +6,6 @@ using UnityEngine.UI;
 public class Crafting : MonoBehaviour
 {
 	public static Crafting m_instance = null;
-	//public GameObject mainPanel;
 	public GameObject craftPanel;
 	public GameObject craftSlot;
 	public Image slotSelectedImage;
@@ -29,12 +28,13 @@ public class Crafting : MonoBehaviour
 			craftingSlotsGO [i].GetComponent <RectTransform> ().localScale = Vector3.one;
 			craftingSlotsGO [i].transform.GetChild (0).GetComponent<Image> ().sprite = ItemDatabase.m_instance.database [craftingItems [i]].Sprite;
 		}
-		CheckHighlightCraftableItems ();
+		//CheckHighlight_ALL_CraftableItems ();
 	}
 
-	public void CheckHighlightCraftableItems ()
+	public void CheckHighlight_ALL_CraftableItems ()
 	{
-		for (int i = 0; i < craftingItems.Length; i++) {
+		//	print ("checking");
+		for (int i = 0; i < craftingItems.Length; i++) {			
 			if (CheckForRequiredItemsInInventory (craftingItems [i])) {
 				craftingSlotsGO [i].transform.GetChild (0).GetComponent<Image> ().color = new Color (1, 1, 1, 1);
 			} else {
@@ -47,7 +47,7 @@ public class Crafting : MonoBehaviour
 	{
 		if (selectedItemID >= 0) {			
 			if (CheckForRequiredItemsInInventory (selectedItemID) && Inventory.m_instance.CheckInventoryHasAtleastOneSpace ()) { //if inventory has all the craftable items
-				RemoveItemsFromInventory ();
+				RemoveItemsToCreateNewItem ();
 				Inventory.m_instance.AddItem (selectedItemID);
 				print ("crafted item" + selectedItemID);
 			} else {
@@ -56,7 +56,7 @@ public class Crafting : MonoBehaviour
 		}
 	}
 
-	void RemoveItemsFromInventory ()
+	void RemoveItemsToCreateNewItem ()
 	{
 		MyItem itemToCraft = ItemDatabase.m_instance.FetchItemByID (selectedItemID);
 
@@ -92,36 +92,24 @@ public class Crafting : MonoBehaviour
 		bool item3 = false;
 		bool item4 = false;
 
-		if (itemToCraft.ItemID1 >= 0) {
-			if (Inventory.m_instance.CheckItemAmountInInventory (itemToCraft.ItemID1) >= itemToCraft.ItemAmount1) {
-				item1 = true;
-			}
-		} else {
-			item1 = true;
+		if (itemToCraft.ItemID1 >= -1 && Inventory.m_instance.CheckItemAmountInInventory (itemToCraft.ItemID1) >= itemToCraft.ItemAmount1) {
+			//print (id + " 1 " + Inventory.m_instance.CheckItemAmountInInventory (itemToCraft.ItemID1) + " " + itemToCraft.ItemAmount1);			
+			item1 = true;			
 		}
-
-		if (itemToCraft.ItemID2 >= 0) {
-			if (Inventory.m_instance.CheckItemAmountInInventory (itemToCraft.ItemID2) >= itemToCraft.ItemAmount2) {
-				item2 = true;
-			}
-		} else {
-			item2 = true;
+		if (itemToCraft.ItemID2 >= -1 && Inventory.m_instance.CheckItemAmountInInventory (itemToCraft.ItemID2) >= itemToCraft.ItemAmount2) {
+//			print (id + " 2 " + Inventory.m_instance.CheckItemAmountInInventory (itemToCraft.ItemID2) + " " + itemToCraft.ItemAmount2);			
+			item2 = true;			
 		}
-		if (itemToCraft.ItemID3 >= 0) {
-			if (Inventory.m_instance.CheckItemAmountInInventory (itemToCraft.ItemID3) >= itemToCraft.ItemAmount3) {
-				item3 = true;
-			}
-		} else {
+		if (itemToCraft.ItemID3 >= -1 && Inventory.m_instance.CheckItemAmountInInventory (itemToCraft.ItemID3) >= itemToCraft.ItemAmount3) {
+			//print (id + " 3 " + Inventory.m_instance.CheckItemAmountInInventory (itemToCraft.ItemID3) + " " + itemToCraft.ItemAmount3);			
 			item3 = true;
-		}
-		if (itemToCraft.ItemID4 >= 0) {
-			if (Inventory.m_instance.CheckItemAmountInInventory (itemToCraft.ItemID4) >= itemToCraft.ItemAmount4) {
-				item4 = true;
-			}
-		} else {
+		} 
+		if (itemToCraft.ItemID4 >= -1 && Inventory.m_instance.CheckItemAmountInInventory (itemToCraft.ItemID4) >= itemToCraft.ItemAmount4) {
+			//print (id + " 4 " + Inventory.m_instance.CheckItemAmountInInventory (itemToCraft.ItemID4) + " " + itemToCraft.ItemAmount4);			
 			item4 = true;
 		}
 
+		//print (id + "" + item1 + " " + item2 + " " + item3 + " " + item4);
 		if (item1 && item2 && item3 && item4) {
 			return true;
 		} else {

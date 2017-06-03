@@ -11,6 +11,7 @@ public class ArmourSlot : MonoBehaviour,IDropHandler, IPointerClickHandler,IPoin
 	public void OnDrop (PointerEventData eventData)
 	{
 		InventoryItemData droppedItem = eventData.pointerDrag.GetComponent <InventoryItemData> ();
+		print ("amt " + droppedItem.GetComponent <InventoryItemData> ().amount);
 		if (droppedItem.type != ItemType.armor) {
 			return;
 		}
@@ -55,6 +56,6 @@ public class ArmourSlot : MonoBehaviour,IDropHandler, IPointerClickHandler,IPoin
 	{
 		Inventory.m_instance.selectedSlotID = id;
 		Inventory.m_instance.slotSelectedImage.transform.parent = this.transform;
-		Inventory.m_instance.slotSelectedImage.GetComponent <RectTransform> ().anchoredPosition = Vector3.zero;
+		Inventory.m_instance.slotSelectedImage.GetComponent <RectTransform> ().anchoredPosition = Vector3.zero;	
 	}
 }
