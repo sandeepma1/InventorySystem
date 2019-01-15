@@ -13,10 +13,10 @@ public class ChestSlot : MonoBehaviour, IDropHandler, IPointerClickHandler, IPoi
     {
         InventoryItemData droppedItem = eventData.pointerDrag.GetComponent<InventoryItemData>();
         //print(droppedItem.slotID + " " + id);
-        if (Inventory.m_instance.l_items[id].ID == -1)
+        if (Inventory.m_instance.items[id].ID == -1)
         { //if slot is empty
-            Inventory.m_instance.l_items[droppedItem.slotID] = new MyItem();
-            Inventory.m_instance.l_items[id] = droppedItem.item;
+            Inventory.m_instance.items[droppedItem.slotID] = new MyItem();
+            Inventory.m_instance.items[id] = droppedItem.item;
             droppedItem.slotID = id;
         }
         else
@@ -48,7 +48,7 @@ public class ChestSlot : MonoBehaviour, IDropHandler, IPointerClickHandler, IPoi
                     {
                         item.GetComponent<InventoryItemData>().amount += droppedItem.amount;
                         item.GetComponent<InventoryItemData>().transform.GetChild(0).GetComponent<Text>().text = item.GetComponent<InventoryItemData>().amount.ToString();
-                        Inventory.m_instance.l_items[droppedItem.slotID] = new MyItem();
+                        Inventory.m_instance.items[droppedItem.slotID] = new MyItem();
                         DestroyImmediate(droppedItem.gameObject);
                         print("added and deleted down item " + droppedItem.GetComponent<InventoryItemData>().item.Name);
                     }
@@ -59,8 +59,8 @@ public class ChestSlot : MonoBehaviour, IDropHandler, IPointerClickHandler, IPoi
                     item.transform.SetParent(Inventory.m_instance.slotsGO[droppedItem.slotID].transform);
                     item.transform.position = Inventory.m_instance.slotsGO[droppedItem.slotID].transform.position;
 
-                    Inventory.m_instance.l_items[droppedItem.slotID] = item.GetComponent<InventoryItemData>().item;
-                    Inventory.m_instance.l_items[id] = droppedItem.item;
+                    Inventory.m_instance.items[droppedItem.slotID] = item.GetComponent<InventoryItemData>().item;
+                    Inventory.m_instance.items[id] = droppedItem.item;
 
                     droppedItem.slotID = id;
                     droppedItem.transform.SetParent(this.transform);

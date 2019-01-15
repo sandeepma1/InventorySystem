@@ -6,32 +6,30 @@ using UnityEngine.UI;
 public class Inventory : MonoBehaviour
 {
     public static Inventory m_instance = null;
+    [SerializeField] private InputField inputField;
     [SerializeField] private Button addButton;
     [SerializeField] private Button removeButton;
     [SerializeField] private Button deleteButton;
     [SerializeField] private Button craftButton;
     [SerializeField] private Button damageWeaponButton;
 
-    [SerializeField] private GameObject inventorySlotPanel;
-    [SerializeField] private GameObject armourSlotPanel;
-    [SerializeField] private GameObject chestSlotPanel;
-    [SerializeField] private GameObject inventorySlot;
-    [SerializeField] private GameObject armorSlot;
-    [SerializeField] private GameObject chestSlot;
+    [SerializeField] private Transform inventorySlotPanel;
+    [SerializeField] private Transform armourSlotPanel;
+    [SerializeField] private Transform chestSlotPanel;
+    [SerializeField] private InventorySlot inventorySlotPrefab;
     [SerializeField] private GameObject inventoryItem;
-
     [SerializeField] private int chestSlotAmount = 6;
     public MyItem selectedItem = null;
 
     public int inventorySlotAmount = 10;
     public int armourSlotAmount = 4;
     public Image slotSelectedImage;
-    public List<MyItem> l_items = new List<MyItem>();
-    public List<GameObject> slotsGO = new List<GameObject>();
+    public List<MyItem> items = new List<MyItem>();
+    public List<InventorySlot> slotsGO = new List<InventorySlot>();
     public int selectedSlotID = -1;
     public int maxStackAmount = 10;
 
-    private int inputFeildID = -1, inputFeildAmount = -1;
+    private int inputFeildItemId = -1;
     private InventoryItem[] myInventory;
 
     private void Awake()
@@ -41,12 +39,13 @@ public class Inventory : MonoBehaviour
 
     private void Start()
     {
-        AddInventorySlots();
-        AddArmorSlots();
-        AddChestSlots();
+        InitializeUiButtons();
+        CreateInventorySlots();
+        CreateArmorSlots();
+        CreateChestSlots();
         myInventory = new InventoryItem[slotsGO.Count];
         AddSampleItems();
-        Crafting.m_instance.CheckHighlight_ALL_CraftableItems();
+        Crafting.m_instance.InspectCraftableItems();
     }
 
     private void OnDestroy()
@@ -57,58 +56,26 @@ public class Inventory : MonoBehaviour
         damageWeaponButton.onClick.RemoveListener(DecreseWeaponDurability);
     }
 
-    private void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            for (int i = 0; i < slotsGO.Count; i++)
-            {
-                if (slotsGO[i].GetComponent<InventorySlot>())
-                {
-                    if (CheckIfSlotHasItem(i))
-                    {
-                        print("inv>>>>> " + slotsGO[i].GetComponent<InventorySlot>().id + " " + l_items[i].ID + " " +
-                        slotsGO[i].GetComponent<InventorySlot>().transform.GetChild(0).GetComponent<InventoryItemData>().amount);
-                    }
-                    else
-                    {
-                        print("inv>>>>> " + slotsGO[i].GetComponent<InventorySlot>().id + " " + l_items[i].ID + " 0");
-                    }
-                }
-                if (slotsGO[i].GetComponent<ArmourSlot>())
-                {
-                    if (CheckIfSlotHasItem(i))
-                    {
-                        print("arm  " + slotsGO[i].GetComponent<ArmourSlot>().id + " " + l_items[i].ID + " " +
-                        slotsGO[i].GetComponent<ArmourSlot>().transform.GetChild(0).GetComponent<InventoryItemData>().amount);
-                    }
-                    else
-                    {
-                        print("arm  " + slotsGO[i].GetComponent<ArmourSlot>().id + " " + l_items[i].ID + " 0");
-                    }
-                }
-                if (slotsGO[i].GetComponent<ChestSlot>())
-                {
-                    if (CheckIfSlotHasItem(i))
-                    {
-                        print("che0000000" + slotsGO[i].GetComponent<ChestSlot>().id + " " + l_items[i].ID + " " +
-                        slotsGO[i].GetComponent<ChestSlot>().transform.GetChild(0).GetComponent<InventoryItemData>().amount);
-                    }
-                    else
-                    {
-                        print("che0000000 " + slotsGO[i].GetComponent<ChestSlot>().id + " " + l_items[i].ID + " 0");
-                    }
-                }
-            }
-        }
-    }
-
     private void InitializeUiButtons()
     {
+        inputField.onEndEdit.AddListener(OnInputFieldEditEnd);
         addButton.onClick.AddListener(AddItemButton);
         removeButton.onClick.AddListener(RemoveItemButton);
         deleteButton.onClick.AddListener(DeleteSelectedItem);
         damageWeaponButton.onClick.AddListener(DecreseWeaponDurability);
+    }
+
+    private void OnInputFieldEditEnd(string input)
+    {
+        int amount;
+        if (int.TryParse(input, out amount))
+        {
+            inputFeildItemId = amount;
+        }
+        else
+        {
+            Debug.LogWarning("Entered text is not a number, please enter only numbers");
+        }
     }
 
     private void AddButtonEventHandler()
@@ -116,36 +83,33 @@ public class Inventory : MonoBehaviour
         throw new NotImplementedException();
     }
 
-    private void AddInventorySlots()
+    private void CreateInventorySlots()
     {
         for (int i = 0; i < inventorySlotAmount; i++)
         {
-            l_items.Add(new MyItem());
-            slotsGO.Add(Instantiate(inventorySlot, inventorySlotPanel.transform));
-            slotsGO[i].GetComponent<InventorySlot>().id = i;
-            slotsGO[i].GetComponent<RectTransform>().localScale = Vector3.one;
+            items.Add(new MyItem());
+            slotsGO.Add(Instantiate(inventorySlotPrefab, inventorySlotPanel.transform));
+            slotsGO[i].InitializeSlot(i, TypeOfSlot.item);
         }
     }
 
-    private void AddArmorSlots()
+    private void CreateArmorSlots()
     {
         for (int i = inventorySlotAmount; i < inventorySlotAmount + armourSlotAmount; i++)
         {
-            l_items.Add(new MyItem());
-            slotsGO.Add(Instantiate(armorSlot, armourSlotPanel.transform));
-            slotsGO[i].GetComponent<ArmourSlot>().id = i;
-            slotsGO[i].GetComponent<RectTransform>().localScale = Vector3.one;
+            items.Add(new MyItem());
+            slotsGO.Add(Instantiate(inventorySlotPrefab, armourSlotPanel.transform));
+            slotsGO[i].InitializeSlot(i, TypeOfSlot.armor);
         }
     }
 
-    private void AddChestSlots()
+    private void CreateChestSlots()
     {
         for (int i = inventorySlotAmount + armourSlotAmount; i < inventorySlotAmount + armourSlotAmount + chestSlotAmount; i++)
         {
-            l_items.Add(new MyItem());
-            slotsGO.Add(Instantiate(chestSlot, chestSlotPanel.transform));
-            slotsGO[i].GetComponent<ChestSlot>().id = i;
-            slotsGO[i].GetComponent<RectTransform>().localScale = Vector3.one;
+            items.Add(new MyItem());
+            slotsGO.Add(Instantiate(inventorySlotPrefab, chestSlotPanel.transform));
+            slotsGO[i].InitializeSlot(i, TypeOfSlot.chest);
         }
     }
 
@@ -175,12 +139,12 @@ public class Inventory : MonoBehaviour
             return;
         }
         List<int> occurance = new List<int>();
-        MyItem itemsToAdd = ItemsDatabase.m_instance.FetchItemByID(id);
+        MyItem itemsToAdd = ItemsDatabase.FetchItemByID(id);
         if (itemsToAdd.Stackable)
         {
-            for (int i = 0; i < l_items.Count - (armourSlotAmount + chestSlotAmount); i++)
+            for (int i = 0; i < items.Count - (armourSlotAmount + chestSlotAmount); i++)
             {
-                if (l_items[i].ID == id)
+                if (items[i].ID == id)
                 {
                     occurance.Add(i);
                 }
@@ -219,23 +183,23 @@ public class Inventory : MonoBehaviour
             AddNewItemInUI(itemsToAdd);
         }
         SaveInventoryItems();
-        Crafting.m_instance.CheckHighlight_ALL_CraftableItems();
+        Crafting.m_instance.InspectCraftableItems();
     }
 
     private void AddNewItemInUI(MyItem itemsToAdd)
     {
         if (CheckInventoryHasAtleastOneSpace())
         {
-            for (int i = 0; i < l_items.Count - (armourSlotAmount + chestSlotAmount); i++)
+            for (int i = 0; i < items.Count - (armourSlotAmount + chestSlotAmount); i++)
             {
-                if (l_items[i].ID == -1)
+                if (items[i].ID == -1)
                 {
-                    l_items[i] = itemsToAdd;
+                    items[i] = itemsToAdd;
                     GameObject itemsGO = Instantiate(inventoryItem, slotsGO[i].transform);
                     itemsGO.transform.SetAsFirstSibling();
                     itemsGO.GetComponent<RectTransform>().localScale = Vector3.one;
                     itemsGO.GetComponent<InventoryItemData>().slotID = i;
-                    itemsGO.GetComponent<InventoryItemData>().type = itemsToAdd.Type;
+                    itemsGO.GetComponent<InventoryItemData>().typeOfItem = itemsToAdd.Type;
                     if (itemsToAdd.Durability > 0)
                     {
                         itemsGO.GetComponent<InventoryItemData>().durability = itemsToAdd.Durability;
@@ -262,13 +226,13 @@ public class Inventory : MonoBehaviour
             Debug.LogWarning("No item removed. Input box (in bottom left corner of screen) is empty, give some item id.");
             return;
         }
-        MyItem itemsToRemove = ItemsDatabase.m_instance.FetchItemByID(id);
+        MyItem itemsToRemove = ItemsDatabase.FetchItemByID(id);
         //print ("removed " + itemsToRemove.Name);
         if (itemsToRemove.Stackable)
         {
-            for (int i = 0; i < l_items.Count - (armourSlotAmount + chestSlotAmount); i++)
+            for (int i = 0; i < items.Count - (armourSlotAmount + chestSlotAmount); i++)
             {
-                if (l_items[i].ID == id)
+                if (items[i].ID == id)
                 {
                     InventoryItemData data = slotsGO[i].transform.GetChild(0).GetComponent<InventoryItemData>();
                     if (data.amount > 1)
@@ -286,9 +250,9 @@ public class Inventory : MonoBehaviour
         }
         else
         {
-            for (int i = 0; i < l_items.Count; i++)
+            for (int i = 0; i < items.Count; i++)
             {
-                if (l_items[i].ID == id)
+                if (items[i].ID == id)
                 {
                     slotsGO[i].transform.GetChild(0).GetComponent<InventoryItemData>().amount--;
                     DestroyItem(i);
@@ -297,7 +261,7 @@ public class Inventory : MonoBehaviour
             }
         }
         //SaveInventoryItems ();
-        Crafting.m_instance.CheckHighlight_ALL_CraftableItems();
+        Crafting.m_instance.InspectCraftableItems();
     }
 
     public void DeleteSelectedItem()
@@ -320,14 +284,14 @@ public class Inventory : MonoBehaviour
                 break;
             }
         }
-        l_items[id] = new MyItem();
+        items[id] = new MyItem();
     }
 
     private bool CheckItemInInventory(MyItem item)
     {
         for (int i = 0; i < inventorySlotAmount; i++)
         {
-            if (l_items[i].ID == item.ID)
+            if (items[i].ID == item.ID)
             {
                 return true;
             }
@@ -424,26 +388,12 @@ public class Inventory : MonoBehaviour
 
     private void AddItemButton()
     {
-        AddItem(inputFeildID);
+        AddItem(inputFeildItemId);
     }
 
     private void RemoveItemButton()
     {
-        RemoveItem(inputFeildID);
-    }
-
-    public void InputFeildID(string text)
-    {
-        int id;
-        int.TryParse(text, out id);
-        inputFeildID = id;
-    }
-
-    public void InputFeildAmount(string text)
-    {
-        int amount;
-        int.TryParse(text, out amount);
-        inputFeildAmount = amount;
+        RemoveItem(inputFeildItemId);
     }
 }
 
@@ -457,17 +407,17 @@ public class InventoryItem
 
     public InventoryItem(int id, int amount, int slotID, int health)
     {
-        this.ID = id;
-        this.Amount = amount;
-        this.SlotID = slotID;
-        this.Health = health;
+        ID = id;
+        Amount = amount;
+        SlotID = slotID;
+        Health = health;
     }
 
     public InventoryItem()
     {
-        this.ID = -1;
-        this.Amount = -1;
-        this.SlotID = -1;
-        this.Health = -1;
+        ID = -1;
+        Amount = -1;
+        SlotID = -1;
+        Health = -1;
     }
 }

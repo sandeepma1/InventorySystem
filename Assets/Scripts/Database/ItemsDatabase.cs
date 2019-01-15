@@ -8,7 +8,7 @@ public class ItemsDatabase : MonoBehaviour
 {
     public static ItemsDatabase m_instance = null;
     [HideInInspector]
-    public List<MyItem> database = new List<MyItem>();
+    public static List<MyItem> database = new List<MyItem>();
 
     private string fileName = "Items";
 
@@ -20,18 +20,6 @@ public class ItemsDatabase : MonoBehaviour
     private void Start()
     {
         ConstructItemDatabase();
-    }
-
-    public MyItem FetchItemByID(int id)
-    {
-        for (int i = 0; i < database.Count; i++)
-        {
-            if (database[i].ID == id)
-            {
-                return database[i];
-            }
-        }
-        return null;
     }
 
     private void ConstructItemDatabase()
@@ -50,6 +38,23 @@ public class ItemsDatabase : MonoBehaviour
                 IntParse(chars[12]), IntParse(chars[13]), IntParse(chars[14]), IntParse(chars[15]), IntParse(chars[16]),
                 IntParse(chars[17]), IntParse(chars[18]), IntParse(chars[19])));
         }
+    }
+
+    public static MyItem FetchItemByID(int id)
+    {
+        for (int i = 0; i < database.Count; i++)
+        {
+            if (database[i].ID == id)
+            {
+                return database[i];
+            }
+        }
+        return null;
+    }
+
+    public static Sprite GetSpriteByItemId(int id)
+    {
+        return database[id].Sprite;
     }
 
     private int IntParse(string text)

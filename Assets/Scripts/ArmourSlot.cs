@@ -8,14 +8,14 @@ public class ArmourSlot : MonoBehaviour, IDropHandler, IPointerClickHandler, IPo
     public void OnDrop(PointerEventData eventData)
     {
         InventoryItemData droppedItem = eventData.pointerDrag.GetComponent<InventoryItemData>();
-        if (droppedItem.type != TypeOfItem.armor)
+        if (droppedItem.typeOfItem != TypeOfItem.armor)
         {
             return;
         }
-        if (Inventory.m_instance.l_items[id].ID == -1)
+        if (Inventory.m_instance.items[id].ID == -1)
         {
-            Inventory.m_instance.l_items[droppedItem.slotID] = new MyItem();
-            Inventory.m_instance.l_items[id] = droppedItem.item;
+            Inventory.m_instance.items[droppedItem.slotID] = new MyItem();
+            Inventory.m_instance.items[id] = droppedItem.item;
             droppedItem.slotID = id;
         }
         else
@@ -34,8 +34,8 @@ public class ArmourSlot : MonoBehaviour, IDropHandler, IPointerClickHandler, IPo
                 item.transform.SetParent(Inventory.m_instance.slotsGO[droppedItem.slotID].transform);
                 item.transform.position = Inventory.m_instance.slotsGO[droppedItem.slotID].transform.position;
 
-                Inventory.m_instance.l_items[droppedItem.slotID] = item.GetComponent<InventoryItemData>().item;
-                Inventory.m_instance.l_items[id] = droppedItem.item;
+                Inventory.m_instance.items[droppedItem.slotID] = item.GetComponent<InventoryItemData>().item;
+                Inventory.m_instance.items[id] = droppedItem.item;
 
                 droppedItem.slotID = id;
                 droppedItem.transform.SetParent(this.transform);

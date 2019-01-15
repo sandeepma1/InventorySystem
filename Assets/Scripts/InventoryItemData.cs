@@ -8,7 +8,7 @@ public class InventoryItemData : MonoBehaviour, IBeginDragHandler, IDragHandler,
     public MyItem item;
     public int amount = 1;
     public int durability = 0;
-    public TypeOfItem type;
+    public TypeOfItem typeOfItem;
     public int slotID;
 
     float durabilityPercentage = 0.0f;
@@ -47,11 +47,11 @@ public class InventoryItemData : MonoBehaviour, IBeginDragHandler, IDragHandler,
 
     public void OnEndDrag(PointerEventData eventData)
     {
-        this.transform.SetParent(Inventory.m_instance.slotsGO[slotID].transform);
-        this.transform.SetAsFirstSibling();
-        this.transform.position = Inventory.m_instance.slotsGO[slotID].transform.position;
+        transform.SetParent(Inventory.m_instance.slotsGO[slotID].transform);
+        transform.SetAsFirstSibling();
+        transform.position = Inventory.m_instance.slotsGO[slotID].transform.position;
         GetComponent<CanvasGroup>().blocksRaycasts = true;
-        Crafting.m_instance.CheckHighlight_ALL_CraftableItems();
+        Crafting.m_instance.InspectCraftableItems();
     }
 
     public void SelectedItem()

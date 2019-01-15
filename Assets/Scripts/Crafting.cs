@@ -5,14 +5,15 @@ using UnityEngine.UI;
 public class Crafting : MonoBehaviour
 {
     public static Crafting m_instance = null;
-    public Image slotSelectedImage;
-    public int selectedItemID = -1;
 
+    [SerializeField] private Transform slotSelectedImage;
     [SerializeField] private Button craftButton;
-    [SerializeField] private GameObject craftPanelParent;
-    [SerializeField] private GameObject craftSlotPrefab;
+    [SerializeField] private Transform craftPanelParent;
+    [SerializeField] private CraftingSlot craftSlotPrefab;
     [SerializeField] private int[] craftingItems;
-    [SerializeField] private List<GameObject> craftingSlotsGO = new List<GameObject>();
+
+    private int selectedItemID = -1;
+    private List<CraftingSlot> craftingSlotsGO = new List<CraftingSlot>();
 
     private void Awake()
     {
@@ -22,15 +23,7 @@ public class Crafting : MonoBehaviour
     private void Start()
     {
         craftButton.onClick.AddListener(CraftSelectedItem);
-        for (int i = 0; i < craftingItems.Length; i++)
-        {
-            craftingSlotsGO.Add(Instantiate(craftSlotPrefab, craftPanelParent.transform));
-            craftingSlotsGO[i].GetComponent<CraftingSlot>().id = i;
-            craftingSlotsGO[i].GetComponent<CraftingSlot>().itemID = craftingItems[i];
-            craftingSlotsGO[i].GetComponent<RectTransform>().localScale = Vector3.one;
-            craftingSlotsGO[i].transform.GetChild(0).GetComponent<Image>().sprite = ItemsDatabase.m_instance.database[craftingItems[i]].Sprite;
-        }
-        //CheckHighlight_ALL_CraftableItems ();
+        CreateCraftingSlots();
     }
 
     private void OnDestroy()
@@ -38,27 +31,48 @@ public class Crafting : MonoBehaviour
         craftButton.onClick.RemoveListener(CraftSelectedItem);
     }
 
-    public void CheckHighlight_ALL_CraftableItems()
+    public void InspectCraftableItems()
     {
-        //	print ("checking");
+        if (craftingSlotsGO.Count == 0)
+        {
+            return;
+        }
         for (int i = 0; i < craftingItems.Length; i++)
         {
-            if (CheckForRequiredItemsInInventory(craftingItems[i]))
+            if (CheckRequiredItemsInInventory(craftingItems[i]))
             {
-                craftingSlotsGO[i].transform.GetChild(0).GetComponent<Image>().color = new Color(1, 1, 1, 1);
+                craftingSlotsGO[i].slotIcon.color = new Color(1, 1, 1, 1);
             }
             else
             {
-                craftingSlotsGO[i].transform.GetChild(0).GetComponent<Image>().color = new Color(0, 0, 0, 1);
+                craftingSlotsGO[i].slotIcon.color = new Color(0, 0, 0, 1);
             }
         }
     }
 
-    public void CraftSelectedItem()
+    private void CreateCraftingSlots()
+    {
+        for (int i = 0; i < craftingItems.Length; i++)
+        {
+            craftingSlotsGO.Add(Instantiate(craftSlotPrefab, craftPanelParent));
+            craftingSlotsGO[i].OnCraftingSlotSelected += OnCraftingSlotSelectedEventHandler;
+            craftingSlotsGO[i].InitializeSlot(craftingItems[i], i);
+        }
+    }
+
+    private void OnCraftingSlotSelectedEventHandler(int itemId, int slotId)
+    {
+        selectedItemID = itemId;
+        slotSelectedImage.SetParent(craftingSlotsGO[slotId].transform);
+        slotSelectedImage.GetComponent<RectTransform>().anchoredPosition = Vector2.zero;
+        slotSelectedImage.SetAsLastSibling();
+    }
+
+    private void CraftSelectedItem()
     {
         if (selectedItemID >= 0)
         {
-            if (CheckForRequiredItemsInInventory(selectedItemID) && Inventory.m_instance.CheckInventoryHasAtleastOneSpace())
+            if (CheckRequiredItemsInInventory(selectedItemID) && Inventory.m_instance.CheckInventoryHasAtleastOneSpace())
             { //if inventory has all the craftable items
                 RemoveItemsToCreateNewItem();
                 Inventory.m_instance.AddItem(selectedItemID);
@@ -73,7 +87,7 @@ public class Crafting : MonoBehaviour
 
     private void RemoveItemsToCreateNewItem()
     {
-        MyItem itemToCraft = ItemsDatabase.m_instance.FetchItemByID(selectedItemID);
+        MyItem itemToCraft = ItemsDatabase.FetchItemByID(selectedItemID);
 
         if (itemToCraft.ItemID1 >= 0)
         {
@@ -107,9 +121,9 @@ public class Crafting : MonoBehaviour
         }
     }
 
-    private bool CheckForRequiredItemsInInventory(int id)
+    private bool CheckRequiredItemsInInventory(int id)
     {
-        MyItem itemToCraft = ItemsDatabase.m_instance.FetchItemByID(id);
+        MyItem itemToCraft = ItemsDatabase.FetchItemByID(id);
         bool item1 = false;
         bool item2 = false;
         bool item3 = false;
@@ -117,26 +131,21 @@ public class Crafting : MonoBehaviour
 
         if (itemToCraft.ItemID1 >= -1 && Inventory.m_instance.CheckItemAmountInInventory(itemToCraft.ItemID1) >= itemToCraft.ItemAmount1)
         {
-            //print (id + " 1 " + Inventory.m_instance.CheckItemAmountInInventory (itemToCraft.ItemID1) + " " + itemToCraft.ItemAmount1);			
             item1 = true;
         }
         if (itemToCraft.ItemID2 >= -1 && Inventory.m_instance.CheckItemAmountInInventory(itemToCraft.ItemID2) >= itemToCraft.ItemAmount2)
         {
-            //			print (id + " 2 " + Inventory.m_instance.CheckItemAmountInInventory (itemToCraft.ItemID2) + " " + itemToCraft.ItemAmount2);			
             item2 = true;
         }
         if (itemToCraft.ItemID3 >= -1 && Inventory.m_instance.CheckItemAmountInInventory(itemToCraft.ItemID3) >= itemToCraft.ItemAmount3)
         {
-            //print (id + " 3 " + Inventory.m_instance.CheckItemAmountInInventory (itemToCraft.ItemID3) + " " + itemToCraft.ItemAmount3);			
             item3 = true;
         }
         if (itemToCraft.ItemID4 >= -1 && Inventory.m_instance.CheckItemAmountInInventory(itemToCraft.ItemID4) >= itemToCraft.ItemAmount4)
         {
-            //print (id + " 4 " + Inventory.m_instance.CheckItemAmountInInventory (itemToCraft.ItemID4) + " " + itemToCraft.ItemAmount4);			
             item4 = true;
         }
 
-        //print (id + "" + item1 + " " + item2 + " " + item3 + " " + item4);
         if (item1 && item2 && item3 && item4)
         {
             return true;

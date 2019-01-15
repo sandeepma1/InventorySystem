@@ -1,16 +1,24 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 public class CraftingSlot : MonoBehaviour, IPointerClickHandler
 {
-    public int id;
-    public int itemID;
+    public Action<int, int> OnCraftingSlotSelected;
+    public Image slotIcon;
+    public int slotId;
+    public int itemId;
+
+    public void InitializeSlot(int itemId, int id)
+    {
+        slotId = id;
+        this.itemId = itemId;
+        slotIcon.sprite = ItemsDatabase.GetSpriteByItemId(itemId);
+    }
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        Crafting.m_instance.slotSelectedImage.transform.SetParent(this.transform);
-        Crafting.m_instance.slotSelectedImage.GetComponent<RectTransform>().anchoredPosition = Vector3.zero;
-        Crafting.m_instance.selectedItemID = itemID;
-        Crafting.m_instance.slotSelectedImage.transform.SetAsLastSibling();
+        OnCraftingSlotSelected?.Invoke(itemId, slotId);
     }
 }

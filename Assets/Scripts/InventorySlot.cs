@@ -1,22 +1,43 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public class InventorySlot : MonoBehaviour, IDropHandler, IPointerClickHandler, IPointerDownHandler
 {
-    public int id;
+    public int slotId;
+    public TypeOfSlot typeOfSlot;
+
+    public void InitializeSlot(int slotId, TypeOfSlot typeOfSlot)
+    {
+        this.slotId = slotId;
+        this.typeOfSlot = typeOfSlot;
+    }
 
     public void OnDrop(PointerEventData eventData)
     {
         InventoryItemData droppedItem = eventData.pointerDrag.GetComponent<InventoryItemData>();
 
-        if (Inventory.m_instance.l_items[id].ID == -1)
+        switch (typeOfSlot)
         {
-            Inventory.m_instance.l_items[droppedItem.slotID] = new MyItem();
-            Inventory.m_instance.l_items[id] = droppedItem.item;
-            droppedItem.slotID = id;
+            case TypeOfSlot.item:
+                break;
+            case TypeOfSlot.armor:
+                if (droppedItem.typeOfItem != TypeOfItem.armor)
+                {
+                    return;
+                }
+                break;
+            case TypeOfSlot.chest:
+                break;
+            default:
+                break;
+        }
+
+        if (Inventory.m_instance.items[slotId].ID == -1)
+        {
+            Inventory.m_instance.items[droppedItem.slotID] = new MyItem();
+            Inventory.m_instance.items[slotId] = droppedItem.item;
+            droppedItem.slotID = slotId;
         }
         else
         {
@@ -47,7 +68,7 @@ public class InventorySlot : MonoBehaviour, IDropHandler, IPointerClickHandler, 
                     {
                         item.GetComponent<InventoryItemData>().amount += droppedItem.amount;
                         item.GetComponent<InventoryItemData>().transform.GetChild(0).GetComponent<Text>().text = item.GetComponent<InventoryItemData>().amount.ToString();
-                        Inventory.m_instance.l_items[droppedItem.slotID] = new MyItem();
+                        Inventory.m_instance.items[droppedItem.slotID] = new MyItem();
                         DestroyImmediate(droppedItem.gameObject);
                         print("added and deleted down item " + droppedItem.GetComponent<InventoryItemData>().item.Name);
                     }
@@ -58,10 +79,10 @@ public class InventorySlot : MonoBehaviour, IDropHandler, IPointerClickHandler, 
                     item.transform.SetParent(Inventory.m_instance.slotsGO[droppedItem.slotID].transform);
                     item.transform.position = Inventory.m_instance.slotsGO[droppedItem.slotID].transform.position;
 
-                    Inventory.m_instance.l_items[droppedItem.slotID] = item.GetComponent<InventoryItemData>().item;
-                    Inventory.m_instance.l_items[id] = droppedItem.item;
+                    Inventory.m_instance.items[droppedItem.slotID] = item.GetComponent<InventoryItemData>().item;
+                    Inventory.m_instance.items[slotId] = droppedItem.item;
 
-                    droppedItem.slotID = id;
+                    droppedItem.slotID = slotId;
                     droppedItem.transform.SetParent(this.transform);
                     droppedItem.transform.position = this.transform.position;
                 }
@@ -82,8 +103,15 @@ public class InventorySlot : MonoBehaviour, IDropHandler, IPointerClickHandler, 
 
     public void SelectSlot()
     {
-        Inventory.m_instance.selectedSlotID = id;
+        Inventory.m_instance.selectedSlotID = slotId;
         Inventory.m_instance.slotSelectedImage.transform.SetParent(this.transform);
         Inventory.m_instance.slotSelectedImage.GetComponent<RectTransform>().anchoredPosition = Vector3.zero;
     }
+}
+
+public enum TypeOfSlot
+{
+    item,
+    armor,
+    chest
 }
