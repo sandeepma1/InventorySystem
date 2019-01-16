@@ -17,7 +17,7 @@ public class Inventory : MonoBehaviour
     [SerializeField] private Transform armourSlotPanel;
     [SerializeField] private Transform chestSlotPanel;
     [SerializeField] private InventorySlot inventorySlotPrefab;
-    [SerializeField] private GameObject inventoryItem;
+    [SerializeField] private InventoryItemData inventoryItem;
     [SerializeField] private int chestSlotAmount = 6;
     public MyItem selectedItem = null;
 
@@ -195,23 +195,22 @@ public class Inventory : MonoBehaviour
                 if (items[i].ID == -1)
                 {
                     items[i] = itemsToAdd;
-                    GameObject itemsGO = Instantiate(inventoryItem, slotsGO[i].transform);
+                    InventoryItemData itemsGO = Instantiate(inventoryItem, slotsGO[i].transform);
                     itemsGO.transform.SetAsFirstSibling();
-                    itemsGO.GetComponent<RectTransform>().localScale = Vector3.one;
-                    itemsGO.GetComponent<InventoryItemData>().slotID = i;
-                    itemsGO.GetComponent<InventoryItemData>().typeOfItem = itemsToAdd.Type;
+                    itemsGO.slotID = i;
+                    itemsGO.typeOfItem = itemsToAdd.Type;
                     if (itemsToAdd.Durability > 0)
                     {
-                        itemsGO.GetComponent<InventoryItemData>().durability = itemsToAdd.Durability;
-                        itemsGO.transform.GetChild(1).GetComponent<RectTransform>().sizeDelta = new Vector2(90, 10);
+                        itemsGO.durability = itemsToAdd.Durability;
+                        itemsGO.SetMaxDurability();
                     }
                     else
                     {
-                        itemsGO.GetComponent<InventoryItemData>().durability = -1;
-                        itemsGO.transform.GetChild(1).GetComponent<RectTransform>().sizeDelta = new Vector2(0, 10);
+                        itemsGO.durability = -1;
+                        itemsGO.DisableDurability();
                     }
-                    itemsGO.GetComponent<InventoryItemData>().item = itemsToAdd;
-                    itemsGO.GetComponent<Image>().sprite = itemsToAdd.Sprite;
+                    itemsGO.item = itemsToAdd;
+                    itemsGO.itemIcon.sprite = itemsToAdd.Sprite;
                     itemsGO.GetComponent<RectTransform>().anchoredPosition = Vector3.one;
                     break;
                 }
